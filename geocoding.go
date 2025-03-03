@@ -18,9 +18,9 @@ func (g GeocodingResponse) Empty() bool {
 }
 
 type ReverseGeocodingRequest struct {
-	Lat   float64 `json:"lat"`
-	Lon   float64 `json:"lon"`
-	Limit int     `json:"limit"`
+	Lat   float64
+	Lon   float64
+	Limit int
 }
 
 func (r ReverseGeocodingRequest) endpoint(path string, v url.Values) string {

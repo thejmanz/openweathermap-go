@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
 )
 
 const baseUrl = "https://api.openweathermap.org"
@@ -23,9 +24,16 @@ func withBaseUrl(url string) Option {
 	}
 }
 
-func New(apiKey string) *OpenWeatherMap {
+func New(apiKey string, opts ...Option) *OpenWeatherMap {
 	o := OpenWeatherMap{apiKey: apiKey}
+	for _, opt := range opts {
+		opt(&o)
+	}
 	return &o
+}
+
+func (o *OpenWeatherMap) ReverseGeocode(ctx context.Context, r ReverseGeocodingRequest) (*GeocodingResponse, error) {
+	return o.reverseGeocode(ctx, r)
 }
 
 func (o *OpenWeatherMap) getUrlAppendingPath(path string) string {
@@ -36,6 +44,10 @@ func (o *OpenWeatherMap) getUrlAppendingPath(path string) string {
 		u = o.baseUrl
 	}
 	return u + path
+}
+
+func (o *OpenWeatherMap) getCredentialedValues() url.Values {
+	return url.Values{"appid": {o.apiKey}}
 }
 
 func (o *OpenWeatherMap) makeRequest(ctx context.Context, url string, destination interface{}) error {
@@ -64,4 +76,15 @@ func (o *OpenWeatherMap) makeRequest(ctx context.Context, url string, destinatio
 	}
 
 	return json.Unmarshal(by, &destination)
+}
+
+func (o *OpenWeatherMap) reverseGeocode(ctx context.Context, b requestBuilder) (*GeocodingResponse, error) {
+	v := o.getCredentialedValues()
+	p := o.getUrlAppendingPath("/geo/1.0/reverse")
+
+	var r GeocodingResponse
+	if err := o.makeRequest(ctx, b.endpoint(p, v), &r); err != nil {
+		return nil, err
+	}
+	return &r, nil
 }
