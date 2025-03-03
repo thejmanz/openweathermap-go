@@ -1,6 +1,9 @@
 package openweathermap
 
-import "strings"
+import (
+	"net/url"
+	"strings"
+)
 
 type OneCallWeatherType string
 
@@ -20,4 +23,19 @@ func (o OneCallDataSet) Excluding() string {
 		e[i] = string(s)
 	}
 	return strings.Join(e, ",")
+}
+
+type OneCallRequest struct {
+	Lat   float64
+	Lon   float64
+	Units string
+	Lang  string
+}
+
+func (o OneCallRequest) endpoint(path string, v url.Values) string {
+	addFloat64UrlValue("lat", o.Lat, v)
+	addFloat64UrlValue("lon", o.Lon, v)
+	addStringUrlValue("units", o.Units, "metric", v)
+	addStringUrlValue("lang", o.Lang, "en", v)
+	return requestUrl(path, v)
 }
