@@ -33,7 +33,11 @@ func New(apiKey string, opts ...Option) *OpenWeatherMap {
 }
 
 func (o *OpenWeatherMap) ReverseGeocode(ctx context.Context, r ReverseGeocodingRequest) (*GeocodingResponse, error) {
-	return o.reverseGeocode(ctx, r)
+	return o.geocode(ctx, r, "/geo/1.0/reverse")
+}
+
+func (o *OpenWeatherMap) DirectGeocode(ctx context.Context, r DirectGeocodingRequest) (*GeocodingResponse, error) {
+	return o.geocode(ctx, r, "/geo/1.0/direct")
 }
 
 func (o *OpenWeatherMap) getUrlAppendingPath(path string) string {
@@ -78,9 +82,9 @@ func (o *OpenWeatherMap) makeRequest(ctx context.Context, url string, destinatio
 	return json.Unmarshal(by, &destination)
 }
 
-func (o *OpenWeatherMap) reverseGeocode(ctx context.Context, b requestBuilder) (*GeocodingResponse, error) {
+func (o *OpenWeatherMap) geocode(ctx context.Context, b requestBuilder, path string) (*GeocodingResponse, error) {
 	v := o.getCredentialedValues()
-	p := o.getUrlAppendingPath("/geo/1.0/reverse")
+	p := o.getUrlAppendingPath(path)
 
 	var r GeocodingResponse
 	if err := o.makeRequest(ctx, b.endpoint(p, v), &r); err != nil {

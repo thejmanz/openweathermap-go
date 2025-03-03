@@ -12,26 +12,53 @@ import (
 )
 
 func TestOpenWeatherMap_ReverseGeocode(t *testing.T) {
-	expected, err := jsonDataFromFile("data/geocoding/reverse_geocoding_response.json")
-	if err != nil {
-		t.Error(err.Error())
-	}
+	t.Run("reverse_geocode_request", func(t *testing.T) {
+		expected, err := jsonDataFromFile("data/geocoding/reverse_geocoding_response.json")
+		if err != nil {
+			t.Error(err.Error())
+		}
 
-	owm := mockClient(expected)
-	rs, err := owm.ReverseGeocode(context.TODO(), ReverseGeocodingRequest{})
-	if err != nil {
-		t.Error(err.Error())
-	}
+		owm := mockClient(expected)
+		rs, err := owm.ReverseGeocode(context.TODO(), ReverseGeocodingRequest{})
+		if err != nil {
+			t.Error(err.Error())
+		}
 
-	got, err := json.Marshal(rs)
-	if err != nil {
-		t.Error(err.Error())
-	}
+		got, err := json.Marshal(rs)
+		if err != nil {
+			t.Error(err.Error())
+		}
 
-	err = compareJson(expected, got)
-	if err != nil {
-		t.Error(err.Error())
-	}
+		err = compareJson(expected, got)
+		if err != nil {
+			t.Error(err.Error())
+		}
+	})
+}
+
+func TestOpenWeatherMap_DirectGeocode(t *testing.T) {
+	t.Run("direct_geocode_request", func(t *testing.T) {
+		expected, err := jsonDataFromFile("data/geocoding/direct_geocoding_response.json")
+		if err != nil {
+			t.Error(err.Error())
+		}
+
+		owm := mockClient(expected)
+		rs, err := owm.DirectGeocode(context.TODO(), DirectGeocodingRequest{})
+		if err != nil {
+			t.Error(err.Error())
+		}
+
+		got, err := json.Marshal(rs)
+		if err != nil {
+			t.Error(err.Error())
+		}
+
+		err = compareJson(expected, got)
+		if err != nil {
+			t.Error(err.Error())
+		}
+	})
 }
 
 func mockClient(expected []byte) *OpenWeatherMap {
@@ -62,7 +89,7 @@ func compareJson(expected, got []byte) error {
 	}
 
 	if !reflect.DeepEqual(e, g) {
-		return fmt.Errorf("\nexpected = %v\ngot = %v", expected, got)
+		return fmt.Errorf("\nexpected = %v\ngot = %v", e, g)
 	}
 
 	return nil
