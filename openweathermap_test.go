@@ -18,7 +18,7 @@ func TestOpenWeatherMap_ReverseGeocode(t *testing.T) {
 			t.Error(err.Error())
 		}
 
-		owm := mockClient(expected)
+		owm := mockClient(expected, http.StatusOK)
 		rs, err := owm.ReverseGeocode(context.TODO(), ReverseGeocodingRequest{})
 		if err != nil {
 			t.Error(err.Error())
@@ -43,7 +43,7 @@ func TestOpenWeatherMap_DirectGeocode(t *testing.T) {
 			t.Error(err.Error())
 		}
 
-		owm := mockClient(expected)
+		owm := mockClient(expected, http.StatusOK)
 		rs, err := owm.DirectGeocode(context.TODO(), DirectGeocodingRequest{})
 		if err != nil {
 			t.Error(err.Error())
@@ -61,9 +61,31 @@ func TestOpenWeatherMap_DirectGeocode(t *testing.T) {
 	})
 }
 
-func mockClient(expected []byte) *OpenWeatherMap {
+func TestAPIError_Error(t *testing.T) {
+	t.Run("api_error_response", func(t *testing.T) {
+		expected, err := jsonDataFromFile("data/error/api_error_response.json")
+		if err != nil {
+			t.Error(err.Error())
+		}
+
+		owm := mockClient(expected, http.StatusBadRequest)
+		_, err = owm.DirectGeocode(context.TODO(), DirectGeocodingRequest{})
+
+		got, err := json.Marshal(err)
+		if err != nil {
+			t.Error(err.Error())
+		}
+
+		err = compareJson(expected, got)
+		if err != nil {
+			t.Error(err.Error())
+		}
+	})
+}
+
+func mockClient(expected []byte, status int) *OpenWeatherMap {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(status)
 		_, _ = w.Write(expected)
 	}))
 

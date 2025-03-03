@@ -2,7 +2,6 @@ package openweathermap
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 type APIError struct {
@@ -12,5 +11,5 @@ type APIError struct {
 }
 
 func (a *APIError) Error() string {
-	return fmt.Sprintf("http: %s, %s", a.Cod, a.Error())
+	return a.Message
 }
