@@ -3,6 +3,7 @@ package openweathermap
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -11,93 +12,98 @@ import (
 	"testing"
 )
 
-func TestOpenWeatherMap_ReverseGeocode(t *testing.T) {
-	t.Run("reverse_geocode_request", func(t *testing.T) {
-		expected, err := jsonDataFromFile("data/geocoding/reverse_geocoding_response.json")
-		if err != nil {
-			t.Error(err.Error())
-		}
+const (
+	ReverseGeocode int = iota
+	DirectGeocode
+)
 
-		owm := mockClient(expected, http.StatusOK)
-		rs, err := owm.ReverseGeocode(context.TODO(), ReverseGeocodingRequest{})
-		if err != nil {
-			t.Error(err.Error())
-		}
+func TestOpenWeatherMap_OneCall(t *testing.T) {
+	t.Run("one_call_request", func(t *testing.T) {
+		oneCall(t, "data/onecall/one_call_response.json")
+	})
 
-		got, err := json.Marshal(rs)
-		if err != nil {
-			t.Error(err.Error())
-		}
-
-		err = compareJson(expected, got)
-		if err != nil {
-			t.Error(err.Error())
-		}
+	t.Run("one_call_current_request", func(t *testing.T) {
+		oneCall(t, "data/onecall/one_call_current_response.json")
 	})
 }
 
 func TestOpenWeatherMap_DirectGeocode(t *testing.T) {
-	t.Run("direct_geocode_request", func(t *testing.T) {
-		expected, err := jsonDataFromFile("data/geocoding/direct_geocoding_response.json")
-		if err != nil {
-			t.Error(err.Error())
-		}
+	geocode(t, "data/geocoding/direct_geocoding_response.json", DirectGeocode)
+}
 
-		owm := mockClient(expected, http.StatusOK)
-		rs, err := owm.DirectGeocode(context.TODO(), DirectGeocodingRequest{})
-		if err != nil {
-			t.Error(err.Error())
-		}
-
-		got, err := json.Marshal(rs)
-		if err != nil {
-			t.Error(err.Error())
-		}
-
-		err = compareJson(expected, got)
-		if err != nil {
-			t.Error(err.Error())
-		}
-	})
+func TestOpenWeatherMap_ReverseGeocode(t *testing.T) {
+	geocode(t, "data/geocoding/reverse_geocoding_response.json", ReverseGeocode)
 }
 
 func TestAPIError_Error(t *testing.T) {
-	t.Run("api_error_response", func(t *testing.T) {
-		expected, err := jsonDataFromFile("data/error/api_error_response.json")
-		if err != nil {
-			t.Error(err.Error())
-		}
-
-		owm := mockClient(expected, http.StatusBadRequest)
-		_, err = owm.DirectGeocode(context.TODO(), DirectGeocodingRequest{})
-
-		got, err := json.Marshal(err)
-		if err != nil {
-			t.Error(err.Error())
-		}
-
-		err = compareJson(expected, got)
-		if err != nil {
-			t.Error(err.Error())
-		}
-	})
-}
-
-func mockClient(expected []byte, status int) *OpenWeatherMap {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(status)
-		_, _ = w.Write(expected)
-	}))
-
-	return New("YOURAPIKEY", withBaseUrl(srv.URL))
-}
-
-func jsonDataFromFile(fileName string) ([]byte, error) {
-	by, err := os.ReadFile(fileName)
+	owm, expected, err := getTestClient("data/error/api_error_response.json", http.StatusUnauthorized)
 	if err != nil {
-		return nil, err
+		t.Fatal(err.Error())
 	}
-	return by, nil
+
+	_, err = owm.OneCall(context.TODO(), OneCallRequest{}, nil)
+	if err == nil {
+		t.Errorf("Expected request to produce an error")
+	}
+
+	var apiError *APIError
+	if errors.As(err, &apiError) {
+		got, marshalErr := json.Marshal(apiError)
+		if marshalErr != nil {
+			t.Error(marshalErr.Error())
+		}
+
+		if err = compareJson(expected, got); err != nil {
+			t.Error(err.Error())
+		}
+	} else {
+		t.Errorf("Invalid error type")
+	}
+}
+
+func oneCall(t *testing.T, filename string) {
+	owm, expected, err := getTestClient(filename, http.StatusOK)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	rs, err := owm.OneCall(context.TODO(), OneCallRequest{}, nil)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	got, err := json.Marshal(rs)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if err = compareJson(expected, got); err != nil {
+		t.Error(err.Error())
+	}
+}
+
+func geocode(t *testing.T, filename string, geocodingType int) {
+	owm, expected, err := getTestClient(filename, http.StatusOK)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	var rs interface{}
+	switch geocodingType {
+	case ReverseGeocode:
+		rs, err = owm.ReverseGeocode(context.TODO(), ReverseGeocodingRequest{})
+	default:
+		rs, err = owm.DirectGeocode(context.TODO(), DirectGeocodingRequest{})
+	}
+
+	got, err := json.Marshal(rs)
+	if err != nil {
+		t.Error(err.Error())
+	}
+
+	if err = compareJson(expected, got); err != nil {
+		t.Error(err.Error())
+	}
 }
 
 func compareJson(expected, got []byte) error {
@@ -111,8 +117,24 @@ func compareJson(expected, got []byte) error {
 	}
 
 	if !reflect.DeepEqual(e, g) {
-		return fmt.Errorf("\nexpected = %v\ngot = %v", e, g)
+		return fmt.Errorf("\nexpected=%s\ngot=%s", e, g)
 	}
 
 	return nil
+}
+
+func getTestClient(filename string, status int) (*OpenWeatherMap, []byte, error) {
+	expected, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(status)
+		_, _ = w.Write(expected)
+	}))
+
+	cl := New("YOURAPIKEY", withBaseUrl(srv.URL))
+
+	return cl, expected, nil
 }

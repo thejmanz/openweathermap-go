@@ -7,7 +7,7 @@ import (
 type APIError struct {
 	Cod        json.Number `json:"cod"`
 	Message    string      `json:"message"`
-	Parameters []string    `json:"parameters"`
+	Parameters []string    `json:"parameters,omitempty"`
 }
 
 func (a *APIError) Error() string {

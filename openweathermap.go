@@ -32,6 +32,10 @@ func New(apiKey string, opts ...Option) *OpenWeatherMap {
 	return &o
 }
 
+func (o *OpenWeatherMap) OneCall(ctx context.Context, r OneCallRequest, exclude OneCallDataSet) (*OneCallWeatherResponse, error) {
+	return o.oneCall(ctx, r, exclude)
+}
+
 func (o *OpenWeatherMap) ReverseGeocode(ctx context.Context, r ReverseGeocodingRequest) (*GeocodingResponse, error) {
 	return o.geocode(ctx, r, "/geo/1.0/reverse")
 }
@@ -89,6 +93,21 @@ func (o *OpenWeatherMap) geocode(ctx context.Context, b requestBuilder, path str
 	var r GeocodingResponse
 	if err := o.makeRequest(ctx, b.endpoint(p, v), &r); err != nil {
 		return nil, err
+	}
+	return &r, nil
+}
+
+func (o *OpenWeatherMap) oneCall(ctx context.Context, b requestBuilder, exclude OneCallDataSet) (*OneCallWeatherResponse, error) {
+	v := o.getCredentialedValues()
+	p := o.getUrlAppendingPath("/data/3.0/onecall")
+	if len(exclude) > 0 {
+		v.Add("exclude", exclude.Excluding())
+	}
+
+	var r OneCallWeatherResponse
+	if err := o.makeRequest(ctx, b.endpoint(p, v), &r); err != nil {
+		return nil, err
+
 	}
 	return &r, nil
 }

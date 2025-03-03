@@ -1,0 +1,30 @@
+{
+  "lat": 33.4645,
+  "lon": -118.4546,
+  "timezone": "America/Los_Angeles",
+  "timezone_offset": -28800,
+  "current": {
+    "dt": 1741025786,
+    "sunrise": 1741011566,
+    "sunset": 1741053134,
+    "temp": 287.31,
+    "feels_like": 286.22,
+    "pressure": 1018,
+    "humidity": 55,
+    "dew_point": 278.41,
+    "uvi": 3.47,
+    "clouds": 0,
+    "visibility": 10000,
+    "wind_speed": 12.86,
+    "wind_deg": 303,
+    "wind_gust": 13.43,
+    "weather": [
+      {
+        "id": 800,
+        "main": "Clear",
+        "description": "clear sky",
+        "icon": "01d"
+      }
+    ]
+  }
+}
