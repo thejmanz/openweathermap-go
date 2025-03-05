@@ -63,7 +63,7 @@ func (o *OpenWeatherMap) getCredentialedValues() url.Values {
 }
 
 func (o *OpenWeatherMap) makeRequest(ctx context.Context, url string, destination interface{}) error {
-	rq, err := http.NewRequest("GET", url, nil)
+	rq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return err
 	}
