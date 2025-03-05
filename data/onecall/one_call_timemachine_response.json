@@ -1,0 +1,31 @@
+{
+  "lat": 38.4645,
+  "lon": -118.4546,
+  "timezone": "America/Los_Angeles",
+  "timezone_offset": -28800,
+  "data": [
+    {
+      "dt": 1741135494,
+      "sunrise": 1741098076,
+      "sunset": 1741139397,
+      "temp": 282.4,
+      "feels_like": 280.43,
+      "pressure": 1020,
+      "humidity": 26,
+      "dew_point": 264.91,
+      "uvi": 0.14,
+      "clouds": 100,
+      "visibility": 10000,
+      "wind_speed": 3.6,
+      "wind_deg": 310,
+      "weather": [
+        {
+          "id": 804,
+          "main": "Clouds",
+          "description": "overcast clouds",
+          "icon": "04d"
+        }
+      ]
+    }
+  ]
+}

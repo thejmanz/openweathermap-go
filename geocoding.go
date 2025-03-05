@@ -24,9 +24,9 @@ type ReverseGeocodingRequest struct {
 }
 
 func (r ReverseGeocodingRequest) endpoint(path string, v url.Values) string {
-	addFloat64UrlValue("lat", r.Lat, v)
-	addFloat64UrlValue("lon", r.Lon, v)
-	addIntUrlValue("limit", r.Limit, v)
+	addFloat64Value(v, "lat", r.Lat)
+	addFloat64Value(v, "lon", r.Lon)
+	addIntValue(v, "limit", r.Limit)
 	return requestUrl(path, v)
 }
 
@@ -37,6 +37,6 @@ type DirectGeocodingRequest struct {
 
 func (d DirectGeocodingRequest) endpoint(path string, v url.Values) string {
 	v.Add("q", d.Query)
-	addIntUrlValue("limit", d.Limit, v)
+	addIntValue(v, "limit", d.Limit)
 	return requestUrl(path, v)
 }

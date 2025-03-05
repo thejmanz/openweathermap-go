@@ -10,21 +10,35 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
 
+type GeocodingRequestType = int
+
 const (
-	ReverseGeocode int = iota
-	DirectGeocode
+	ReverseGeocode GeocodingRequestType = iota
+	DirectGeocode  GeocodingRequestType = 1
+)
+
+type OneCallRequestType = int
+
+const (
+	OneCall     OneCallRequestType = iota
+	TimeMachine OneCallRequestType = 1
 )
 
 func TestOpenWeatherMap_OneCall(t *testing.T) {
 	t.Run("one_call_request", func(t *testing.T) {
-		oneCall(t, "data/onecall/one_call_response.json")
+		oneCall(t, "data/onecall/one_call_response.json", OneCall)
 	})
 
 	t.Run("one_call_current_request", func(t *testing.T) {
-		oneCall(t, "data/onecall/one_call_current_response.json")
+		oneCall(t, "data/onecall/one_call_current_response.json", OneCall)
 	})
+}
+
+func TestOpenWeatherMap_OneCallTimeMachine(t *testing.T) {
+	oneCall(t, "data/onecall/one_call_timemachine_response.json", TimeMachine)
 }
 
 func TestOpenWeatherMap_DirectGeocode(t *testing.T) {
@@ -61,13 +75,20 @@ func TestAPIError_Error(t *testing.T) {
 	}
 }
 
-func oneCall(t *testing.T, filename string) {
+func oneCall(t *testing.T, filename string, requestType OneCallRequestType) {
 	owm, expected, err := getTestClient(filename, http.StatusOK)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
 
-	rs, err := owm.OneCall(context.TODO(), OneCallRequest{}, nil)
+	var rs interface{}
+	switch requestType {
+	case OneCall:
+		rs, err = owm.OneCall(context.TODO(), OneCallRequest{}, nil)
+	case TimeMachine:
+		rs, err = owm.OneCallTimeMachine(context.TODO(), OneCallRequest{}, time.Now().Unix())
+	}
+
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -82,18 +103,22 @@ func oneCall(t *testing.T, filename string) {
 	}
 }
 
-func geocode(t *testing.T, filename string, geocodingType int) {
+func geocode(t *testing.T, filename string, requestType GeocodingRequestType) {
 	owm, expected, err := getTestClient(filename, http.StatusOK)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
 
 	var rs interface{}
-	switch geocodingType {
+	switch requestType {
 	case ReverseGeocode:
 		rs, err = owm.ReverseGeocode(context.TODO(), ReverseGeocodingRequest{})
-	default:
+	case DirectGeocode:
 		rs, err = owm.DirectGeocode(context.TODO(), DirectGeocodingRequest{})
+	}
+
+	if err != nil {
+		t.Error(err.Error())
 	}
 
 	got, err := json.Marshal(rs)

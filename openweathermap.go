@@ -36,6 +36,10 @@ func (o *OpenWeatherMap) OneCall(ctx context.Context, r OneCallRequest, exclude 
 	return o.oneCall(ctx, r, exclude)
 }
 
+func (o *OpenWeatherMap) OneCallTimeMachine(ctx context.Context, r OneCallRequest, timestamp int64) (*OneCallTimeMachineResponse, error) {
+	return o.oneCallTimeMachine(ctx, r, timestamp)
+}
+
 func (o *OpenWeatherMap) ReverseGeocode(ctx context.Context, r ReverseGeocodingRequest) (*GeocodingResponse, error) {
 	return o.geocode(ctx, r, "/geo/1.0/reverse")
 }
@@ -107,7 +111,18 @@ func (o *OpenWeatherMap) oneCall(ctx context.Context, b requestBuilder, exclude 
 	var r OneCallWeatherResponse
 	if err := o.makeRequest(ctx, b.endpoint(p, v), &r); err != nil {
 		return nil, err
+	}
+	return &r, nil
+}
 
+func (o *OpenWeatherMap) oneCallTimeMachine(ctx context.Context, b requestBuilder, timestamp int64) (*OneCallTimeMachineResponse, error) {
+	v := o.getCredentialedValues()
+	p := o.getUrlAppendingPath("/data/3.0/onecall/timemachine")
+	addInt64Value(v, "dt", timestamp)
+
+	var r OneCallTimeMachineResponse
+	if err := o.makeRequest(ctx, b.endpoint(p, v), &r); err != nil {
+		return nil, err
 	}
 	return &r, nil
 }

@@ -33,10 +33,10 @@ type OneCallRequest struct {
 }
 
 func (o OneCallRequest) endpoint(path string, v url.Values) string {
-	addFloat64UrlValue("lat", o.Lat, v)
-	addFloat64UrlValue("lon", o.Lon, v)
-	addStringUrlValue("units", o.Units, "metric", v)
-	addStringUrlValue("lang", o.Lang, "en", v)
+	addFloat64Value(v, "lat", o.Lat)
+	addFloat64Value(v, "lon", o.Lon)
+	addStringValueWithDefault(v, "units", o.Units, "metric")
+	addStringValueWithDefault(v, "lang", o.Lang, "en")
 	return requestUrl(path, v)
 }
 
@@ -147,4 +147,12 @@ type OneCallWeatherResponse struct {
 	Hourly         []OneCallForecastHourlyData   `json:"hourly,omitempty"`
 	Daily          []OneCallForecastDailyData    `json:"daily,omitempty"`
 	Alerts         []OneCallWeatherAlertData     `json:"alerts,omitempty"`
+}
+
+type OneCallTimeMachineResponse struct {
+	Lat            float64                     `json:"lat"`
+	Lon            float64                     `json:"lon"`
+	Timezone       string                      `json:"timezone"`
+	TimezoneOffset int64                       `json:"timezone_offset"`
+	Data           []OneCallCurrentWeatherData `json:"data,omitempty"`
 }
