@@ -18,6 +18,7 @@ type GeocodingRequestType = int
 const (
 	ReverseGeocode GeocodingRequestType = iota
 	DirectGeocode  GeocodingRequestType = 1
+	ZipGeocode     GeocodingRequestType = 2
 )
 
 type OneCallRequestType = int
@@ -47,6 +48,10 @@ func TestOpenWeatherMap_DirectGeocode(t *testing.T) {
 
 func TestOpenWeatherMap_ReverseGeocode(t *testing.T) {
 	geocode(t, "data/geocoding/reverse_geocoding_response.json", ReverseGeocode)
+}
+
+func TestOpenWeatherMap_ZipGeocode(t *testing.T) {
+	geocode(t, "data/geocoding/zip_geocoding_response.json", ZipGeocode)
 }
 
 func TestAPIError_Error(t *testing.T) {
@@ -115,18 +120,24 @@ func geocode(t *testing.T, filename string, requestType GeocodingRequestType) {
 		rs, err = owm.ReverseGeocode(context.TODO(), ReverseGeocodingRequest{})
 	case DirectGeocode:
 		rs, err = owm.DirectGeocode(context.TODO(), DirectGeocodingRequest{})
+	case ZipGeocode:
+		rs, err = owm.ZipGeocode(context.TODO(), ZipGeocodingRequest{})
 	}
 
 	if err != nil {
 		t.Error(err.Error())
 	}
 
-	geo, ok := (rs).(*GeocodingResponse)
-	if !ok {
-		t.Fatal("Invalid response type")
+	var got []byte
+	switch val := rs.(type) {
+	case *GeocodingResponse:
+		got, err = json.Marshal(val.Locations)
+	case *ZipGeocodingResponse:
+		got, err = json.Marshal(val)
+	default:
+		t.Fatal("invalid response type")
 	}
 
-	got, err := json.Marshal(geo.Locations)
 	if err != nil {
 		t.Error(err.Error())
 	}

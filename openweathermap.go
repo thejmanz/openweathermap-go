@@ -48,6 +48,10 @@ func (o *OpenWeatherMap) DirectGeocode(ctx context.Context, r DirectGeocodingReq
 	return o.geocode(ctx, r, "/geo/1.0/direct")
 }
 
+func (o *OpenWeatherMap) ZipGeocode(ctx context.Context, r ZipGeocodingRequest) (*ZipGeocodingResponse, error) {
+	return o.zipGeocode(ctx, r, "/geo/1.0/zip")
+}
+
 func (o *OpenWeatherMap) getUrlAppendingPath(path string) string {
 	var u string
 	if o.baseUrl == "" {
@@ -96,6 +100,17 @@ func (o *OpenWeatherMap) geocode(ctx context.Context, b requestBuilder, path str
 
 	var r GeocodingResponse
 	if err := o.makeRequest(ctx, b.endpoint(p, v), &r.Locations); err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
+func (o *OpenWeatherMap) zipGeocode(ctx context.Context, b requestBuilder, path string) (*ZipGeocodingResponse, error) {
+	v := o.getCredentialedValues()
+	p := o.getUrlAppendingPath(path)
+
+	var r ZipGeocodingResponse
+	if err := o.makeRequest(ctx, b.endpoint(p, v), &r); err != nil {
 		return nil, err
 	}
 	return &r, nil
