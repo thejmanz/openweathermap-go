@@ -21,7 +21,7 @@ func main() {
 
 	geo, err := client.ReverseGeocode(context.Background(), request)
 	if err != nil {
-		log.Println(fmt.Errorf("request failed, reson: %w", err))
+		log.Println(fmt.Errorf("request failed, reason: %w", err))
 	}
 
 	if !geo.Empty() {
