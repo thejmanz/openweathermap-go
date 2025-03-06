@@ -95,7 +95,7 @@ func (o *OpenWeatherMap) geocode(ctx context.Context, b requestBuilder, path str
 	p := o.getUrlAppendingPath(path)
 
 	var r GeocodingResponse
-	if err := o.makeRequest(ctx, b.endpoint(p, v), &r); err != nil {
+	if err := o.makeRequest(ctx, b.endpoint(p, v), &r.Locations); err != nil {
 		return nil, err
 	}
 	return &r, nil

@@ -2,7 +2,7 @@ package openweathermap
 
 import "net/url"
 
-type GeocodingResult struct {
+type GeocodingLocationData struct {
 	Name       string            `json:"name"`
 	LocalNames map[string]string `json:"local_names,omitempty"`
 	Lat        float64           `json:"lat"`
@@ -11,10 +11,12 @@ type GeocodingResult struct {
 	State      string            `json:"state,omitempty"` // US only
 }
 
-type GeocodingResponse []GeocodingResult
+type GeocodingResponse struct {
+	Locations []GeocodingLocationData
+}
 
 func (g GeocodingResponse) Empty() bool {
-	return len(g) == 0
+	return len(g.Locations) == 0
 }
 
 type ReverseGeocodingRequest struct {
