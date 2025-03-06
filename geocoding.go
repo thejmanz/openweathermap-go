@@ -42,3 +42,20 @@ func (d DirectGeocodingRequest) endpoint(path string, v url.Values) string {
 	addIntValue(v, "limit", d.Limit)
 	return requestUrl(path, v)
 }
+
+type ZipGeocodingResponse struct {
+	Zip     string  `json:"zip"`
+	Name    string  `json:"name"`
+	Lat     float64 `json:"lat"`
+	Lon     float64 `json:"lon"`
+	Country string  `json:"country"`
+}
+
+type ZipGeocodingRequest struct {
+	Query string
+}
+
+func (z ZipGeocodingRequest) endpoint(path string, v url.Values) string {
+	v.Add("zip", z.Query)
+	return requestUrl(path, v)
+}
