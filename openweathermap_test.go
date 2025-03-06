@@ -123,7 +123,7 @@ func geocode(t *testing.T, filename string, requestType GeocodingRequestType) {
 
 	geo, ok := (rs).(*GeocodingResponse)
 	if !ok {
-		t.Errorf("Invalid response type")
+		t.Fatal("Invalid response type")
 	}
 
 	got, err := json.Marshal(geo.Locations)
